@@ -1,4 +1,5 @@
 [package]
+<<<<<<< HEAD
 authors = ['subdao-dev <https://github.com/SubDAO-Network>']
 build = 'build.rs'
 description = ''
@@ -7,6 +8,16 @@ homepage = 'https://www.subdao.network/'
 license = 'Apache 2.0'
 name = 'subdao-node'
 repository = 'https://github.com/SubDAO-Network/subdao-node.git'
+=======
+authors = ['subDAO <https://github.com/remote-freeman>']
+build = 'build.rs'
+description = ''
+edition = '2018'
+homepage = 'https://remote-freeman'
+license = 'Apache 2.0'
+name = 'subdao-node'
+repository = 'https://github.com/remote-freeman/subdao-node/'
+>>>>>>> init
 version = '2.0.0'
 
 [[bin]]

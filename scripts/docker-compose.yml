@@ -1,0 +1,39 @@
+version: "3.2"
+
+services:
+  subdao-data-proxy:
+    container_name: subdao-data-proxy
+    image: subdao-node:latest
+    ports:
+      - "8080:8080"
+    env_file:
+      - subdao-data-proxy.env
+    command: bash -c "/data_fetcher"
+
+  subdao-node:
+    container_name: subdao-node
+    image: subdao-node:latest
+    ports:
+      - "9944:9944"
+      - "9933:9933"
+      - "30333:30333"
+    command: bash -c "/subdao-node --dev --ws-external --rpc-external --rpc-methods Unsafe"
+    depends_on:
+      - subdao-data-proxy
+
+  insert-ocw:
+    container_name: insert-ocw
+    image: subdao-node:latest
+    command: bash -c "sleep 30 && /insert_alice_key.sh"
+    depends_on:
+      - subdao-node
+  
+  subdao-market-frontend:
+    container_name: subdao-market-frontend
+    image: subdao-node:latest
+    ports:
+      - "3001:3001"
+    command: bash -c "cd /apps && serve -p 3001 build"
+    depends_on:
+      - subdao-node
+  
