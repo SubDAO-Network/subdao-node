@@ -307,7 +307,7 @@ impl pallet_contracts::Trait for Runtime {
 
 /// Payload data to be signed when making signed transaction from off-chain workers,
 ///   inside `create_transaction` function.
-// pub type SignedPayload = generic::SignedPayload<Call, SignedExtra>;
+pub type SignedPayload = generic::SignedPayload<Call, SignedExtra>;
 
 // parameter_types! {
 //    pub const GracePeriod: u64 = 5;
@@ -323,69 +323,69 @@ impl pallet_contracts::Trait for Runtime {
 //    type UnsignedInterval = UnsignedInterval;
 //    type UnsignedPriority = UnsignedPriority;
 // }
-// impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Runtime
-// where
-//     Call: From<LocalCall>,
-// {
-//     fn create_transaction<C: frame_system::offchain::AppCrypto<Self::Public, Self::Signature>>(
-//         call: Call,
-//         public: <Signature as sp_runtime::traits::Verify>::Signer,
-//         account: AccountId,
-//         index: Index,
-//     ) -> Option<(
-//         Call,
-//         <UncheckedExtrinsic as sp_runtime::traits::Extrinsic>::SignaturePayload,
-//     )> {
-//         let period = BlockHashCount::get() as u64;
-//         let current_block = System::block_number()
-//             .saturated_into::<u64>()
-//             .saturating_sub(1);
-//         let tip = 0;
-//         let extra: SignedExtra = (
-//             frame_system::CheckSpecVersion::<Runtime>::new(),
-//             frame_system::CheckTxVersion::<Runtime>::new(),
-//             frame_system::CheckGenesis::<Runtime>::new(),
-//             frame_system::CheckEra::<Runtime>::from(generic::Era::mortal(period, current_block)),
-//             frame_system::CheckNonce::<Runtime>::from(index),
-//             frame_system::CheckWeight::<Runtime>::new(),
-//             pallet_transaction_payment::ChargeTransactionPayment::<Runtime>::from(tip),
-//         );
+impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Runtime
+where
+    Call: From<LocalCall>,
+{
+    fn create_transaction<C: frame_system::offchain::AppCrypto<Self::Public, Self::Signature>>(
+        call: Call,
+        public: <Signature as sp_runtime::traits::Verify>::Signer,
+        account: AccountId,
+        index: Index,
+    ) -> Option<(
+        Call,
+        <UncheckedExtrinsic as sp_runtime::traits::Extrinsic>::SignaturePayload,
+    )> {
+        let period = BlockHashCount::get() as u64;
+        let current_block = System::block_number()
+            .saturated_into::<u64>()
+            .saturating_sub(1);
+        let tip = 0;
+        let extra: SignedExtra = (
+            frame_system::CheckSpecVersion::<Runtime>::new(),
+            frame_system::CheckTxVersion::<Runtime>::new(),
+            frame_system::CheckGenesis::<Runtime>::new(),
+            frame_system::CheckEra::<Runtime>::from(generic::Era::mortal(period, current_block)),
+            frame_system::CheckNonce::<Runtime>::from(index),
+            frame_system::CheckWeight::<Runtime>::new(),
+            pallet_transaction_payment::ChargeTransactionPayment::<Runtime>::from(tip),
+        );
 
-//         #[cfg_attr(not(feature = "std"), allow(unused_variables))]
-//         let raw_payload = SignedPayload::new(call, extra)
-//             .map_err(|e| {
-//                 debug::native::warn!("SignedPayload error: {:?}", e);
-//             })
-//             .ok()?;
+        #[cfg_attr(not(feature = "std"), allow(unused_variables))]
+        let raw_payload = SignedPayload::new(call, extra)
+            .map_err(|e| {
+                debug::native::warn!("SignedPayload error: {:?}", e);
+            })
+            .ok()?;
 
-//         let signature = raw_payload.using_encoded(|payload| C::sign(payload, public))?;
+        let signature = raw_payload.using_encoded(|payload| C::sign(payload, public))?;
 
-//         let address = account;
-//         let (call, extra, _) = raw_payload.deconstruct();
-//         Some((call, (address, signature, extra)))
-//     }
-// }
+        let address = account;
+        let (call, extra, _) = raw_payload.deconstruct();
+        Some((call, (address, signature, extra)))
+    }
+}
 
-// impl frame_system::offchain::SigningTypes for Runtime {
-//     type Public = <Signature as sp_runtime::traits::Verify>::Signer;
-//     type Signature = Signature;
-// }
+impl frame_system::offchain::SigningTypes for Runtime {
+    type Public = <Signature as sp_runtime::traits::Verify>::Signer;
+    type Signature = Signature;
+}
 
-// impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
-// where
-//     Call: From<C>,
-// {
-//     type OverarchingCall = Call;
-//     type Extrinsic = UncheckedExtrinsic;
-// }
+impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
+where
+    Call: From<C>,
+{
+    type OverarchingCall = Call;
+    type Extrinsic = UncheckedExtrinsic;
+}
 /*** pallet-ocw end ***/
 
 /*** subdao-data-fetcher start ***/
-// impl subdao_ocw::Trait for Runtime {
-//     type AuthorityId = subdao_ocw::crypto::DataFetcherAuthId;
-//     type Call = Call;
-//     type Event = Event;
-// }
+impl github_ocw::Trait for Runtime {
+    type AuthorityId = github_ocw::crypto::TestAuthId;
+    type Call = Call;
+    type Event = Event;
+}
 /*** subdao-data-fetcher end ***/
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -405,7 +405,7 @@ construct_runtime!(
         Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
         // SubDAOOracleModule: subdao_oracle::{Module, Call, Storage, Event<T>},
         Contracts: pallet_contracts::{Module, Call, Config, Storage, Event<T>},
-        // SubDAOOcwModule: subdao_ocw::{Module, Call, Storage, Event<T>},
+        GithubOcwModule: github_ocw::{Module, Call, Storage, Event<T>},
     }
 );
 

@@ -35,7 +35,7 @@ serde = { features = ['derive'], optional = true, version = '1.0.101' }
 
 # local dependencies
 #subdao-oracle = { path = '../pallets/subdao-oracle', default-features = false, version = '2.0.0' }
-#subdao-ocw = { path = '../pallets/subdao-ocw', version = '2.0.0', default-features = false }
+github-ocw = { path = '../pallets/github-ocw', version = '2.0.0', default-features = false }
 
 # Substrate dependencies
 frame-benchmarking = { default-features = false, optional = true, version = '2.0.0' }
@@ -98,7 +98,7 @@ std = [
     'pallet-contracts-primitives/std',
     'pallet-contracts-rpc-runtime-api/std',
 #    'subdao-oracle/std',
-#    'subdao-ocw/std',
+    'github-ocw/std',
     'sp-api/std',
     'sp-block-builder/std',
     'sp-consensus-aura/std',
