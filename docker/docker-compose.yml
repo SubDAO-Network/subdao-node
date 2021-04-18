@@ -1,0 +1,20 @@
+version: "3.2"
+
+services:
+  subdao-node:
+    container_name: subdao-node
+    image: subdao-node:latest
+    ports:
+      - "9944:9944"
+      - "9933:9933"
+      - "30333:30333"
+    command: bash -c "/subdao-node --dev --ws-external --rpc-external --rpc-methods Unsafe"
+
+  polkadot-frontend:
+    container_name: polkadot-frontend
+    image: subdao-node:latest
+    ports:
+      - "3001:3001"
+    command: bash -c "cd /apps && serve -p 3001 build"
+    depends_on:
+      - subdao-node
