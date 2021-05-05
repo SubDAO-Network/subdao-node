@@ -8,7 +8,9 @@ services:
       - "9944:9944"
       - "9933:9933"
       - "30333:30333"
-    command: bash -c "/subdao-node --dev --ws-external --rpc-external --rpc-methods Unsafe"
+    command: bash -c "/subdao-node --dev --ws-external --rpc-external --rpc-methods Unsafe --base-path /data"
+    volumes: 
+      - ./data:/data
 
   polkadot-frontend:
     container_name: polkadot-frontend
