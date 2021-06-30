@@ -2,20 +2,14 @@
 FROM paritytech/ci-linux:production as builder
 
 LABEL maintainer="subdao-dev"
-ARG RUST_VERSION=nightly-2020-10-06
-ARG PROFILE=debug
 ARG GIT_REPO="https://github.com/SubDAO-Network/subdao-node.git"
 ARG GIT_BRANCH="3.0_dev"
 
-RUN git clone --recursive ${GIT_REPO}
+RUN git clone -b ${GIT_BRANCH} --recursive ${GIT_REPO}
 WORKDIR /builds/subdao-node
-RUN rustup default stable
-RUN rustup update nightly
-RUN rustup update stable
-RUN rustup target add wasm32-unknown-unknown --toolchain nightly
 
 RUN cargo build
-RUN cp target/${PROFILE}/subdao-node /subdao-node
+RUN cp target/debug/subdao-node /subdao-node
 
 # build polkadot and subdao  frontend
 FROM paritytech/ci-linux:production as frontend_builder

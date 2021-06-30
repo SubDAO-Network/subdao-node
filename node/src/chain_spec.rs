@@ -1,4 +1,5 @@
 use sp_core::{Pair, Public, sr25519};
+use sc_chain_spec::Properties;
 use subdao_node_runtime::{
 	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig,
 	SudoConfig, SystemConfig, WASM_BINARY, Signature
@@ -6,6 +7,7 @@ use subdao_node_runtime::{
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{Verify, IdentifyAccount};
+use sp_core::crypto::Ss58Codec;
 use sc_service::ChainType;
 
 // The URL for the telemetry server.
@@ -30,12 +32,71 @@ pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId where
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
+pub fn get_account_id_from_str<TPublic: Public>(s: &str) -> AccountId
+    where AccountId: From<TPublic>
+{
+    let public = TPublic::from_string(s).unwrap();
+    AccountId::from(public)
+}
+
 /// Generate an Aura authority key.
 pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
 	(
 		get_from_seed::<AuraId>(s),
 		get_from_seed::<GrandpaId>(s),
 	)
+}
+
+pub fn subdao_config() -> Result<ChainSpec, String> {
+	let wasm_binary = WASM_BINARY.ok_or_else(|| "subdao wasm binary not available".to_string())?;
+
+	Ok(ChainSpec::from_genesis(
+		// Name
+		"SubDAO",
+		// ID
+		"subdao",
+		ChainType::Custom(String::from("SubDAO")),
+		move || testnet_genesis(
+			wasm_binary,
+			// Initial PoA authorities
+			vec![
+                (
+                    AuraId::from_string("5Gmy27omQM89yzs4qmupTS9Q4CoRnZvLBTfP5UHD1zjUkWH9").unwrap(),
+                    GrandpaId::from_string("5GycQsBGWde6YKJUTRKgdDLfHxH8tkYRDzQCBczEifnCbo6a").unwrap()
+                ),
+                (
+                    AuraId::from_string("5HQqgWj2yNuLFHjzro3NrtjHZyBoct41Bcz2PNHwGQS4uxh4").unwrap(),
+                    GrandpaId::from_string("5EwQ7CC9mtK24efGG5hGJcwJkHScXVZwnKGuWKeJ4BWtP38w").unwrap()
+                ),
+                (
+                    AuraId::from_string("5CATDxSFS3HH4viQq7b1vekAjRHspwVR2HTcgmpv3MZmz4QM").unwrap(),
+                    GrandpaId::from_string("5DjPueJ8zwyecq6P1rtoYbbmPSsBkHodwoTxHFUMkuAXqReD").unwrap()
+                )
+			],
+			// Sudo account
+            get_account_id_from_str::<sr25519::Public>("5GgLgYupWJCUFYDjdLtxyvRj5kkjwm9DPXokL7SxGkvVcsed"),
+			// Pre-funded accounts
+			vec![
+			//	(get_account_id_from_seed::<sr25519::Public>("Alice"), 1_000_000_000_000_000_000_000 ),
+			//	(get_account_id_from_seed::<sr25519::Public>("Alice"), 1 << 60 ),
+			//	(get_account_id_from_seed::<sr25519::Public>("Bob"), 1 <<  60 ),
+			//	(get_account_id_from_seed::<sr25519::Public>("Alice//stash"), 1 << 60) ,
+		//		(get_account_id_from_seed::<sr25519::Public>("Bob//stash"), 1 <<  60 ),
+                (get_account_id_from_str::<sr25519::Public>("5GgLgYupWJCUFYDjdLtxyvRj5kkjwm9DPXokL7SxGkvVcsed"), 1_000_000_000_000_000_000_000),
+			],
+			true,
+		),
+		// Bootnodes
+		vec![],
+		// Telemetry
+		None,
+		// Protocol ID
+		None,
+		// Properties
+		chain_properties(),
+		// Extensions
+		None,
+	))
 }
 
 pub fn development_config() -> Result<ChainSpec, String> {
@@ -57,10 +118,11 @@ pub fn development_config() -> Result<ChainSpec, String> {
 			get_account_id_from_seed::<sr25519::Public>("Alice"),
 			// Pre-funded accounts
 			vec![
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				get_account_id_from_seed::<sr25519::Public>("Bob"),
-				get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-				get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+				(get_account_id_from_seed::<sr25519::Public>("Alice"), 1 << 60 ),
+				(get_account_id_from_seed::<sr25519::Public>("Bob"), 1 <<  60 ),
+				(get_account_id_from_seed::<sr25519::Public>("Alice//stash"), 1 << 60) ,
+				(get_account_id_from_seed::<sr25519::Public>("Bob//stash"), 1 <<  60 ),
+                (get_account_id_from_str::<sr25519::Public>("5GgLgYupWJCUFYDjdLtxyvRj5kkjwm9DPXokL7SxGkvVcsed"), 1_000_000_000_000_000_000_000),
 			],
 			true,
 		),
@@ -71,7 +133,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		// Protocol ID
 		None,
 		// Properties
-		None,
+		chain_properties(),
 		// Extensions
 		None,
 	))
@@ -97,18 +159,18 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 			get_account_id_from_seed::<sr25519::Public>("Alice"),
 			// Pre-funded accounts
 			vec![
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				get_account_id_from_seed::<sr25519::Public>("Bob"),
-				get_account_id_from_seed::<sr25519::Public>("Charlie"),
-				get_account_id_from_seed::<sr25519::Public>("Dave"),
-				get_account_id_from_seed::<sr25519::Public>("Eve"),
-				get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-				get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-				get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-				get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
-				get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-				get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-				get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
+				(get_account_id_from_seed::<sr25519::Public>("Alice"), 1 << 60),
+				(get_account_id_from_seed::<sr25519::Public>("Bob"), 1 << 60),
+				(get_account_id_from_seed::<sr25519::Public>("Charlie"),1 << 60),
+				(get_account_id_from_seed::<sr25519::Public>("Dave"), 1 << 60),
+				(get_account_id_from_seed::<sr25519::Public>("Eve"), 1 << 60),
+				(get_account_id_from_seed::<sr25519::Public>("Ferdie"),1 << 60),
+				(get_account_id_from_seed::<sr25519::Public>("Alice//stash"), 1 << 60),
+				(get_account_id_from_seed::<sr25519::Public>("Bob//stash"), 1 << 60),
+				(get_account_id_from_seed::<sr25519::Public>("Charlie//stash"), 1 << 60),
+				(get_account_id_from_seed::<sr25519::Public>("Dave//stash"), 1 << 60),
+				(get_account_id_from_seed::<sr25519::Public>("Eve//stash"),1 << 60),
+				(get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"), 1 << 60),
 			],
 			true,
 		),
@@ -130,7 +192,7 @@ fn testnet_genesis(
 	wasm_binary: &[u8],
 	initial_authorities: Vec<(AuraId, GrandpaId)>,
 	root_key: AccountId,
-	endowed_accounts: Vec<AccountId>,
+	endowed_accounts: Vec<(AccountId, u128)>,
 	_enable_println: bool,
 ) -> GenesisConfig {
 	GenesisConfig {
@@ -141,7 +203,7 @@ fn testnet_genesis(
 		}),
 		pallet_balances: Some(BalancesConfig {
 			// Configure endowed accounts with initial balance of 1 << 60.
-			balances: endowed_accounts.iter().cloned().map(|k|(k, 1 << 60)).collect(),
+			balances: endowed_accounts,
 		}),
 		pallet_aura: Some(AuraConfig {
 			authorities: initial_authorities.iter().map(|x| (x.0.clone())).collect(),
@@ -154,4 +216,11 @@ fn testnet_genesis(
 			key: root_key,
 		}),
 	}
+}
+fn chain_properties() -> Option<Properties> {
+    let mut p = Properties::new();
+    p.insert("tokenSymbol".into(), "SDT".into());
+    p.insert("tokenDecimals".into(), 12.into());
+    p.insert("ss58Format".into(), 42.into());
+    Some(p)
 }
