@@ -3,7 +3,7 @@ FROM paritytech/ci-linux:production as builder
 
 LABEL maintainer="subdao-dev"
 ARG GIT_REPO="https://github.com/SubDAO-Network/subdao-node.git"
-ARG GIT_BRANCH="3.0_dev"
+ARG GIT_BRANCH="cost_3.0_dev"
 
 RUN git clone -b ${GIT_BRANCH} --recursive ${GIT_REPO}
 WORKDIR /builds/subdao-node
