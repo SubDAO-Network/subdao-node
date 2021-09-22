@@ -9,10 +9,9 @@ ARG GIT_BRANCH="3.0_dev"
 
 RUN git clone --recursive ${GIT_REPO}
 WORKDIR /builds/subdao-node
-RUN rustup default stable
-RUN rustup update nightly
-RUN rustup update stable
-RUN rustup target add wasm32-unknown-unknown --toolchain nightly
+RUN rustup toolchain install ${RUST_VERSION}
+RUN rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
+RUN rustup default ${RUST_VERSION}
 
 RUN cargo build
 RUN cp target/${PROFILE}/subdao-node /subdao-node
