@@ -52,8 +52,8 @@ pub use frame_support::{
 };
 use pallet_transaction_payment::CurrencyAdapter;
 
-/// Import the template pallet.
-// pub use pallet_template;
+/// Import the pallets.
+pub use pallet_crypto;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -274,9 +274,9 @@ impl pallet_sudo::Config for Runtime {
 }
 
 /// Configure the template pallet in pallets/template.
-// impl pallet_template::Config for Runtime {
-// 	type Event = Event;
-// }
+impl pallet_crypto::Config for Runtime {
+	type Event = Event;
+}
 
 /*** pallet-contract start ***/
 // Contracts price units.
@@ -303,13 +303,44 @@ impl ChainExtension<Runtime> for FetchRandomExtension {
                 let mut env = env.buf_in_buf_out();
                 let random_seed: [u8; 32] = RandomnessCollectiveFlip::random_seed().0;
                 let random_slice = random_seed.encode();
-                native::trace!(
+				frame_support::debug::debug!(
                     target: "runtime",
                     "[ChainExtension]|call|func_id:{:}",
                     func_id
                 );
                 env.write(&random_slice, false, None)
                     .map_err(|_| DispatchError::Other("ChainExtension failed to call random"))?;
+            }
+            1102 => {
+                let mut env = env.buf_in_buf_out();
+				frame_support::debug::debug!(
+					target: "runtime",
+					"[ChainExtension]|call|func_id:{:},in_len:{}",
+					func_id, env.in_len()
+				);
+				let total = env.read(env.in_len())?;
+				frame_support::debug::debug!(
+					target: "runtime",
+					"[ChainExtension]|call|func_id:{:},reads:{:?}",
+					func_id, total
+				);
+
+				let s = total.as_slice();
+				let mut account = [0u8; 32];
+				account.copy_from_slice(&s[0..32]);
+				let mut msg = [0u8; 32];
+				msg.copy_from_slice(&s[32..64]);
+				let mut sign = [0u8; 64];
+				sign.copy_from_slice(&s[64..128]);
+				let str = sign.as_slice().encode_hex();
+
+				frame_support::debug::debug!(
+					target: "runtime",
+					"[ChainExtension]|call|func_id:{:},account:{:?}, msg:{:?}, sign:{:?}",
+					func_id, account, msg, sign
+				);
+
+                CryptoModule::verify_sr25519(account, msg, sign)?;
             }
 
             _ => {
@@ -390,8 +421,9 @@ construct_runtime!(
 		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Module, Storage},
 		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
-		// Include the custom logic from the template pallet in the runtime.
-		// TemplateModule: pallet_template::{Module, Call, Storage, Event<T>},
+
+
+		CryptoModule: pallet_crypto::{Module, Call, Storage, Event<T>},
 		Contracts: pallet_contracts::{Module, Call,  Storage, Event<T>},
 	}
 );
