@@ -332,7 +332,6 @@ impl ChainExtension<Runtime> for FetchRandomExtension {
 				msg.copy_from_slice(&s[32..64]);
 				let mut sign = [0u8; 64];
 				sign.copy_from_slice(&s[64..128]);
-				let str = sign.as_slice().encode_hex();
 
 				frame_support::debug::debug!(
 					target: "runtime",
