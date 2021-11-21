@@ -341,6 +341,36 @@ impl ChainExtension<Runtime> for FetchRandomExtension {
 
                 CryptoModule::verify_sr25519(account, msg, sign)?;
             }
+            1103 => {
+                let mut env = env.buf_in_buf_out();
+				frame_support::debug::debug!(
+					target: "runtime",
+					"[ChainExtension]|call|func_id:{:},in_len:{}",
+					func_id, env.in_len()
+				);
+				let total = env.read(env.in_len())?;
+				frame_support::debug::debug!(
+					target: "runtime",
+					"[ChainExtension]|call|func_id:{:},reads:{:?}",
+					func_id, total
+				);
+
+				let s = total.as_slice();
+				let mut account = [0u8; 32];
+				account.copy_from_slice(&s[0..32]);
+				let mut msg = [0u8; 47];
+				msg.copy_from_slice(&s[32..79]);
+				let mut sign = [0u8; 64];
+				sign.copy_from_slice(&s[79..143]);
+
+				frame_support::debug::debug!(
+					target: "runtime",
+					"[ChainExtension]|call|func_id:{:},account:{:?}, msg:{:?}, sign:{:?}",
+					func_id, account, msg, sign
+				);
+
+                CryptoModule::verify_sr25519_bytes(account, msg, sign)?;
+            }
 
             _ => {
                 error!("call an unregistered `func_id`, func_id:{:}", func_id);

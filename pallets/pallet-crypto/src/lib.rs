@@ -78,4 +78,15 @@ impl<T: Config> Module<T> {
 		// Return a successful DispatchResult
 		Ok(())
 	}
+	pub fn verify_sr25519_bytes(account: [u8; 32], msg: [u8; 47], sign: [u8; 64]) ->  Result<(), Error<T>> {
+		// verify
+		let public = Public::from_raw(account);
+		let succ = public.verify(&msg, &Signature::from_raw(sign));
+		if !succ {
+			return Err(Error::VerifyErr)
+		}
+
+		// Return a successful DispatchResult
+		Ok(())
+	}
 }
